@@ -1,0 +1,7 @@
+{
+  "name": "100% ACADEMY - AI Mastery",
+  "description": "Premium training center for AI tools, web development, and digital arts in Douala, Cameroon.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
