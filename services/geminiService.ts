@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 
 const SYSTEM_INSTRUCTION = `
@@ -29,7 +28,7 @@ export const getGeminiChatResponse = async (userMessage: string, history: {role:
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 0.7,
-        maxOutputTokens: 500,
+        // Fixed: Removed maxOutputTokens to prevent potential response blocking as per @google/genai guidelines
       }
     });
 
