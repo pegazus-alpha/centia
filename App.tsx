@@ -5,13 +5,19 @@ import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'fra
 import { 
   Menu, X, Instagram, Facebook, Twitter, Linkedin, 
   ArrowRight, CheckCircle2, MapPin, Phone, Mail,
-  Code, Palette, Video, Database, Sparkles, Zap
+  Code, Palette, Video, Database, Sparkles, Zap,
+  TrendingUp, Users, Award, ChevronDown
 } from 'lucide-react';
 import { ThemeColor } from './types.ts';
 import { COLORS, COURSES, TESTIMONIALS } from './constants.tsx';
 import RobotAssistant from './components/RobotAssistant.tsx';
 import SplashScreen from './components/SplashScreen.tsx';
 import AnimatedBackground from './components/AnimatedBackground.tsx';
+
+// Nouvelles Pages
+import FormationsPage from './FormationsPage.tsx';
+import IA2026Page from './IA2026Page.tsx';
+import ContactPage from './ContactPage.tsx';
 
 const SplitText = ({ text, className = "" }: { text: string, className?: string }) => {
   return (
@@ -33,6 +39,40 @@ const SplitText = ({ text, className = "" }: { text: string, className?: string 
         </motion.span>
       ))}
     </span>
+  );
+};
+
+const FAQItem = ({ question, answer }: { question: string, answer: string }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="border-b border-white/5 py-8">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between text-left group"
+      >
+        <span className="text-xl md:text-2xl font-bold font-display group-hover:text-white/80 transition-colors">{question}</span>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          className="w-10 h-10 glass rounded-full flex items-center justify-center border-white/10"
+        >
+          <ChevronDown size={20} />
+        </motion.div>
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <p className="pt-6 text-white/40 text-lg font-light leading-relaxed">
+              {answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 
@@ -66,7 +106,7 @@ const MagneticButton: React.FC<{ children: React.ReactNode, className?: string, 
   );
 };
 
-const ParallaxSection: React.FC<{ children?: React.ReactNode, offset?: number, className?: string }> = ({ children, offset = 100, className = "" }) => {
+const ParallaxSection: React.FC<{ children?: React.ReactNode, offset?: number, className?: string, fade?: boolean }> = ({ children, offset = 100, className = "", fade = true }) => {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -75,10 +115,10 @@ const ParallaxSection: React.FC<{ children?: React.ReactNode, offset?: number, c
 
   const y = useTransform(scrollYProgress, [0, 1], [offset, -offset]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const springY = useSpring(y, { stiffness: 100, damping: 30 });
+  const springY = useSpring(y, { stiffness: 80, damping: 25 });
 
   return (
-    <motion.div ref={ref} style={{ y: springY, opacity }} className={className}>
+    <motion.div ref={ref} style={{ y: springY, opacity: fade ? opacity : 1 }} className={className}>
       {children}
     </motion.div>
   );
@@ -100,7 +140,6 @@ const ScrollProgress = ({ color }: { color: string }) => {
   );
 };
 
-// Fix: Explicitly use React.FC to ensure children prop is correctly recognized by TypeScript in JSX templates
 const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <motion.div
@@ -121,13 +160,26 @@ const PageWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
   const primaryColor = COLORS[themeColor].primary;
   
+  const heroRef = useRef(null);
+  const { scrollYProgress: heroScroll } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+  const heroTextY = useTransform(heroScroll, [0, 1], [0, -100]);
+  const heroOpacity = useTransform(heroScroll, [0, 0.8], [1, 0]);
+
+  const skillsRef = useRef(null);
+  const { scrollYProgress: skillsScroll } = useScroll({
+    target: skillsRef,
+    offset: ["start end", "end start"]
+  });
+  const skillsX = useTransform(skillsScroll, [0, 1], [-500, 500]);
+
   return (
     <div className="relative">
-      <AnimatedBackground color={primaryColor} />
-
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center pt-20 px-6 text-center">
-        <div className="z-10 max-w-6xl mx-auto">
+      <section ref={heroRef} className="relative min-h-[120vh] flex flex-col items-center justify-center pt-20 px-6 text-center overflow-hidden">
+        <motion.div style={{ y: heroTextY, opacity: heroOpacity }} className="z-10 max-w-6xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -168,122 +220,117 @@ const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
                 <ArrowRight className="group-hover:translate-x-2 transition-transform" />
               </MagneticButton>
             </Link>
-            
-            <div className="flex items-center gap-6 glass p-2 pr-6 rounded-full border-white/5">
-              <div className="flex -space-x-3">
-                 {[1,2,3].map(i => (
-                   <img key={i} src={`https://i.pravatar.cc/100?u=${i+10}`} className="w-10 h-10 rounded-full border-2 border-slate-950" />
-                 ))}
-              </div>
-              <span className="text-xs font-bold text-white/40 uppercase tracking-widest">Rejoignez 500+ Étudiants</span>
-            </div>
           </motion.div>
+        </motion.div>
+      </section>
+
+      {/* STATS SECTION */}
+      <section className="py-20 relative px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-12">
+          {[
+            { label: "Étudiants", val: "1200+", icon: <Users size={20} /> },
+            { label: "Satisfaction", val: "99%", icon: <Award size={20} /> },
+            { label: "Projets IA", val: "500+", icon: <Zap size={20} /> },
+            { label: "Partenaires", val: "25", icon: <TrendingUp size={20} /> },
+          ].map((stat, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className="text-center space-y-4"
+            >
+              <div className="inline-flex items-center gap-2 text-white/20 uppercase tracking-[0.4em] text-[10px] font-black">
+                {stat.icon} {stat.label}
+              </div>
+              <div className="text-5xl md:text-7xl font-black font-display text-white">{stat.val}</div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
       {/* SKILLS SECTION */}
-      <section className="py-60 px-6 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-           <ParallaxSection offset={50} className="mb-32">
-             <h2 className="text-5xl md:text-8xl font-black font-display leading-[0.9]">
-                <span className="text-white/20 uppercase tracking-tighter">Impact</span> <br />
-                INSTANTANÉ.
-             </h2>
-           </ParallaxSection>
+      <section ref={skillsRef} className="py-60 px-6 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto relative">
+           <div className="absolute top-0 left-0 w-full h-full flex items-center pointer-events-none z-0">
+             <motion.h2 
+               style={{ x: skillsX }}
+               className="text-[25vw] font-black font-display leading-none opacity-[0.03] select-none whitespace-nowrap text-white"
+             >
+                IMPACT INSTANTANÉ IMPACT INSTANTANÉ
+             </motion.h2>
+           </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-             {COURSES.map((course, i) => (
-               <motion.div
-                key={course.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ delay: i * 0.1 }}
-                className="group p-12 glass rounded-[3rem] flex flex-col transition-all hover:bg-white/[0.05] border border-white/5 relative overflow-hidden"
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+             {COURSES.slice(0, 6).map((course, i) => (
+               <ParallaxSection 
+                 key={course.id} 
+                 offset={i % 2 === 0 ? 120 : -120} 
+                 fade={false}
                >
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                 
-                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-12 bg-white/5 border border-white/10 group-hover:rotate-[15deg] transition-transform" style={{ color: primaryColor }}>
-                    {course.icon === 'code' && <Code size={30} />}
-                    {course.icon === 'palette' && <Palette size={30} />}
-                    {course.icon === 'video' && <Video size={30} />}
-                    {course.icon === 'database' && <Database size={30} />}
-                 </div>
-                 <h3 className="text-3xl font-bold mb-6 font-display group-hover:translate-x-2 transition-transform">{course.title}</h3>
-                 <p className="text-white/40 text-sm mb-12 leading-relaxed flex-grow font-light">{course.description}</p>
-                 <div className="flex items-center justify-between pt-8 border-t border-white/5 group-hover:border-white/20 transition-colors">
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 group-hover:text-white transition-colors">{course.duration}</span>
-                    <div className="w-10 h-10 rounded-full glass flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
-                       <ArrowRight size={18} />
-                    </div>
-                 </div>
-               </motion.div>
+                 <motion.div
+                  className="group p-12 glass rounded-[3rem] flex flex-col transition-all hover:bg-white/[0.05] border border-white/5 relative overflow-hidden h-[500px]"
+                 >
+                   <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                   <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-12 bg-white/5 border border-white/10 group-hover:rotate-[15deg] transition-transform" style={{ color: primaryColor }}>
+                      <Zap size={30} />
+                   </div>
+                   <h3 className="text-3xl font-bold mb-6 font-display group-hover:translate-x-2 transition-transform">{course.title}</h3>
+                   <p className="text-white/40 text-sm mb-12 leading-relaxed flex-grow font-light">{course.description}</p>
+                   <div className="flex items-center justify-between pt-8 border-t border-white/5">
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">{course.duration}</span>
+                      <div className="w-10 h-10 rounded-full glass flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                         <ArrowRight size={18} />
+                      </div>
+                   </div>
+                 </motion.div>
+               </ParallaxSection>
              ))}
            </div>
         </div>
       </section>
 
-      {/* IMMERSION / ELITE SECTION */}
-      <section className="py-60 relative">
-        <div className="max-w-7xl mx-auto px-6">
-           <motion.div 
-             initial={{ opacity: 0 }}
-             whileInView={{ opacity: 1 }}
-             className="relative rounded-[5rem] overflow-hidden glass p-12 md:p-32 border border-white/10"
-           >
-              <div className="relative z-10 grid lg:grid-cols-2 gap-32 items-center">
-                 <div className="space-y-12">
-                    <motion.div 
-                      initial={{ x: -20, opacity: 0 }}
-                      whileInView={{ x: 0, opacity: 1 }}
-                      className="inline-block px-5 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.5em] text-teal-400"
-                    >
-                      Élite Digital 2026
-                    </motion.div>
-                    <h2 className="text-6xl md:text-9xl font-black font-display leading-[0.8] tracking-tighter">
-                      MODE <br />
-                      <span className="text-white/20 italic">ELITE.</span>
-                    </h2>
-                    <p className="text-white/40 text-2xl leading-relaxed font-light">
-                      L'expérience la plus intense du continent. <br />
-                      4 semaines pour redéfinir ce qui est possible.
-                    </p>
-                    <MagneticButton>
-                      <button className="px-12 py-6 rounded-full font-black text-xl transition-all hover:scale-110 shadow-2xl shadow-teal-500/20" style={{ backgroundColor: primaryColor }}>
-                        Rejoindre le cercle
-                      </button>
-                    </MagneticButton>
-                 </div>
-                 
-                 <div className="grid grid-cols-2 gap-6 relative">
-                    <div className="absolute inset-0 bg-teal-500/20 blur-[120px] -z-10" />
-                    <ParallaxSection offset={100} className="space-y-6">
-                       <div className="h-56 glass rounded-[3rem] p-8 flex flex-col justify-between border-white/10 group">
-                          <Zap size={32} className="text-teal-400 group-hover:scale-125 transition-transform" />
-                          <div>
-                            <span className="text-4xl font-black font-display block">100%</span>
-                            <span className="text-[10px] uppercase font-bold text-white/20 tracking-[0.4em]">Propulsé par IA</span>
-                          </div>
-                       </div>
-                       <motion.div whileHover={{ scale: 0.98 }} className="h-80 rounded-[3rem] overflow-hidden grayscale hover:grayscale-0 transition-all border border-white/10 shadow-2xl">
-                          <img src="https://picsum.photos/seed/tech1/600/800" className="w-full h-full object-cover" />
-                       </motion.div>
-                    </ParallaxSection>
-                    <ParallaxSection offset={-100} className="space-y-6 pt-12">
-                       <motion.div whileHover={{ scale: 0.98 }} className="h-80 rounded-[3rem] overflow-hidden grayscale hover:grayscale-0 transition-all border border-white/10 shadow-2xl">
-                          <img src="https://picsum.photos/seed/tech2/600/800" className="w-full h-full object-cover" />
-                       </motion.div>
-                       <div className="h-56 glass rounded-[3rem] p-8 flex flex-col justify-between border-white/10 group">
-                          <Database size={32} className="text-pink-400 group-hover:scale-125 transition-transform" />
-                          <div>
-                            <span className="text-4xl font-black font-display block">DATA</span>
-                            <span className="text-[10px] uppercase font-bold text-white/20 tracking-[0.4em]">Immersion Totale</span>
-                          </div>
-                       </div>
-                    </ParallaxSection>
-                 </div>
-              </div>
-           </motion.div>
+      {/* FAQ SECTION */}
+      <section className="py-60 px-6 max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          className="text-center mb-24"
+        >
+          <h2 className="text-5xl md:text-8xl font-black font-display mb-8 italic">QUESTIONS.</h2>
+          <p className="text-white/40 text-xl font-light">Tout ce que vous devez savoir avant de franchir le pas.</p>
+        </motion.div>
+        
+        <div className="space-y-4">
+          <FAQItem 
+            question="Faut-il savoir coder pour commencer ?" 
+            answer="Absolument pas. Nos cursus Design et Video IA sont accessibles sans aucune base technique. Pour le cursus Web, nous commençons par les fondamentaux assistés par IA." 
+          />
+          <FAQItem 
+            question="Les formations sont-elles certifiantes ?" 
+            answer="Oui, chaque étudiant reçoit une certification 100% ACADEMY reconnue par nos partenaires technologiques à la fin de son parcours." 
+          />
+          <FAQItem 
+            question="Quel matériel est nécessaire ?" 
+            answer="Un ordinateur portable standard suffit. L'avantage des outils IA est qu'ils s'exécutent principalement dans le cloud, donc pas besoin d'un PC surpuissant." 
+          />
+          <FAQItem 
+            question="Où se déroulent les cours ?" 
+            answer="Nos formations sont hybrides : en présentiel dans notre centre de Bonapriso (Douala) et accessibles en ligne pour les étudiants hors de la ville." 
+          />
+        </div>
+      </section>
+
+      {/* CTA SECTION */}
+      <section className="py-40 px-6 text-center">
+        <div className="max-w-5xl mx-auto glass p-20 rounded-[5rem] border-white/10 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent pointer-events-none" />
+          <h2 className="text-5xl md:text-7xl font-black font-display mb-12 leading-tight">PRÊT À <br /> <span className="text-gradient">CHANGER DE DIMENSION ?</span></h2>
+          <Link to="/contact">
+            <MagneticButton className="px-16 py-8 rounded-full font-black text-2xl transition-all shadow-2xl" style={{ backgroundColor: primaryColor }}>
+              S'inscrire Maintenant
+            </MagneticButton>
+          </Link>
         </div>
       </section>
     </div>
@@ -293,6 +340,7 @@ const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
 const Nav: React.FC<{ themeColor: ThemeColor }> = ({ themeColor }) => {
   const [scrolled, setScrolled] = useState(false);
   const primaryColor = COLORS[themeColor].primary;
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -300,10 +348,17 @@ const Nav: React.FC<{ themeColor: ThemeColor }> = ({ themeColor }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navLinks = [
+    { label: 'Accueil', path: '/' },
+    { label: 'Formations', path: '/formations' },
+    { label: 'IA 2026', path: '/ia-2026' },
+    { label: 'Contact', path: '/contact' }
+  ];
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-8 pointer-events-none">
       <motion.div 
-        animate={{ y: scrolled ? 0 : 0, scale: scrolled ? 0.95 : 1 }}
+        animate={{ scale: scrolled ? 0.95 : 1 }}
         className={`max-w-6xl mx-auto flex items-center justify-between pointer-events-auto transition-all duration-700 rounded-full px-10 py-5 ${scrolled ? 'glass shadow-2xl bg-white/[0.02]' : ''}`}
       >
         <Link to="/" className="flex items-center gap-3 group">
@@ -312,25 +367,27 @@ const Nav: React.FC<{ themeColor: ThemeColor }> = ({ themeColor }) => {
         </Link>
 
         <div className="hidden md:flex items-center gap-12">
-          {['Accueil', 'Formations', 'Elite 2026', 'Support'].map((label, i) => (
+          {navLinks.map((link) => (
              <Link 
-               key={label} 
-               to={`/${label.toLowerCase().replace(" ", "-")}`} 
-               className="text-[10px] font-black text-white/40 hover:text-white transition-all uppercase tracking-[0.4em]"
+               key={link.label} 
+               to={link.path} 
+               className={`text-[10px] font-black transition-all uppercase tracking-[0.4em] ${
+                 location.pathname === link.path ? 'text-white' : 'text-white/40 hover:text-white'
+               }`}
              >
-               {label}
+               {link.label}
              </Link>
           ))}
         </div>
 
         <MagneticButton>
           <Link 
-            to="/inscription" 
-            className="px-8 py-3 rounded-full text-white font-black text-[10px] transition-all uppercase tracking-[0.3em] flex items-center gap-2 group overflow-hidden"
+            to="/contact" 
+            className="px-8 py-3 rounded-full text-white font-black text-[10px] transition-all uppercase tracking-[0.3em] flex items-center gap-2"
             style={{ backgroundColor: primaryColor }}
           >
             <span>S'inscrire</span>
-            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+            <ArrowRight size={14} />
           </Link>
         </MagneticButton>
       </motion.div>
@@ -341,7 +398,7 @@ const Nav: React.FC<{ themeColor: ThemeColor }> = ({ themeColor }) => {
 const Footer = ({ themeColor }: { themeColor: ThemeColor }) => {
   const primaryColor = COLORS[themeColor].primary;
   return (
-    <footer className="pt-60 pb-20 px-6 border-t border-white/5 bg-[#020617] relative z-10">
+    <footer className="pt-60 pb-20 px-6 border-t border-white/5 relative z-10">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start gap-20 mb-40">
            <div className="space-y-12">
@@ -400,7 +457,7 @@ const AppContent: React.FC = () => {
   const primaryColor = COLORS[themeColor].primary;
 
   return (
-    <div className="min-h-screen bg-[#020617]">
+    <div className="min-h-screen relative">
       <ScrollProgress color={primaryColor} />
       <AnimatePresence mode="wait">
         {showSplash ? (
@@ -408,41 +465,20 @@ const AppContent: React.FC = () => {
         ) : (
           <motion.div
             key="main-container"
-            className="selection:bg-teal-500/30 selection:text-teal-200"
+            className="selection:bg-teal-500/30 selection:text-teal-200 min-h-screen"
           >
+            <AnimatedBackground color={primaryColor} />
             <Nav themeColor={themeColor} />
             <AnimatePresence mode="wait">
               <Routes location={location} key={location.pathname}>
-                <Route 
-                  path="/" 
-                  element={
-                    <PageWrapper>
-                      <Home themeColor={themeColor} />
-                    </PageWrapper>
-                  } 
-                />
-                <Route 
-                  path="*" 
-                  element={
-                    <PageWrapper>
-                      <div className="min-h-screen flex items-center justify-center text-white/20 uppercase tracking-[1em] text-xs">
-                        Page en construction
-                      </div>
-                    </PageWrapper>
-                  } 
-                />
+                <Route path="/" element={<PageWrapper><Home themeColor={themeColor} /></PageWrapper>} />
+                <Route path="/formations" element={<PageWrapper><FormationsPage themeColor={themeColor} /></PageWrapper>} />
+                <Route path="/ia-2026" element={<PageWrapper><IA2026Page themeColor={themeColor} /></PageWrapper>} />
+                <Route path="/contact" element={<PageWrapper><ContactPage themeColor={themeColor} /></PageWrapper>} />
               </Routes>
             </AnimatePresence>
             <Footer themeColor={themeColor} />
             <RobotAssistant themeColor={themeColor} />
-            
-            <motion.a 
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              href="https://wa.me/237679910922" 
-              className="fixed bottom-12 left-12 z-[60] w-20 h-20 glass rounded-full flex items-center justify-center border border-white/10 shadow-2xl"
-            >
-              <Phone size={28} style={{ color: COLORS[themeColor].primary }} />
-            </motion.a>
           </motion.div>
         )}
       </AnimatePresence>

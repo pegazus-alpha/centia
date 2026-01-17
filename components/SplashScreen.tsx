@@ -3,80 +3,158 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeColor } from '../types.ts';
 import { COLORS } from '../constants.tsx';
-import { Sparkles, Zap, Shield, Cpu, Code, Palette, Monitor } from 'lucide-react';
+// Added Sparkles to the import list to resolve missing name error
+import { Zap, Shield, Cpu, Code, Palette, Monitor, ArrowRight, Binary, Activity, Sparkles } from 'lucide-react';
 
 interface SplashScreenProps {
   onSelect: (color: ThemeColor) => void;
 }
 
-const FloatingElement = ({ children, delay = 0, duration = 4 }: { children?: React.ReactNode, delay?: number, duration?: number }) => (
+const FloatingParticle: React.FC<{ color: string; delay: number }> = ({ color, delay }) => (
   <motion.div
-    animate={{
-      y: [0, -20, 0],
-      rotate: [0, 10, -10, 0],
+    initial={{ y: "110%", x: `${Math.random() * 100}%`, opacity: 0 }}
+    animate={{ 
+      y: "-10%", 
+      opacity: [0, 0.5, 0],
+      x: [`${Math.random() * 100}%`, `${Math.random() * 100}%`]
     }}
-    transition={{
-      duration,
-      repeat: Infinity,
+    transition={{ 
+      duration: 5 + Math.random() * 5, 
+      repeat: Infinity, 
       delay,
-      ease: "easeInOut"
+      ease: "linear" 
     }}
-    className="absolute pointer-events-none opacity-20"
-  >
-    {children}
-  </motion.div>
+    className="absolute w-1 h-1 rounded-full blur-[1px]"
+    style={{ backgroundColor: color }}
+  />
 );
 
-// Fix: Explicitly use React.FC to support the 'key' prop when used within AnimatePresence
+const BinaryRain: React.FC<{ color: string }> = ({ color }) => (
+  <div className="absolute inset-0 opacity-10 flex justify-around pointer-events-none overflow-hidden">
+    {[...Array(10)].map((_, i) => (
+      <motion.div
+        key={i}
+        initial={{ y: -100 }}
+        animate={{ y: 1000 }}
+        transition={{ duration: 5 + i, repeat: Infinity, ease: "linear" }}
+        className="text-[10px] font-mono leading-none flex flex-col gap-2"
+        style={{ color }}
+      >
+        {Array.from({ length: 40 }).map((_, j) => (
+          <span key={j}>{Math.round(Math.random())}</span>
+        ))}
+      </motion.div>
+    ))}
+  </div>
+);
+
 const ThemePreviewPortal: React.FC<{ color: ThemeColor }> = ({ color }) => {
   const theme = COLORS[color];
+  const isTeal = color === 'teal';
+
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.8, filter: 'blur(20px)' }}
-      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-      exit={{ opacity: 0, scale: 1.1, filter: 'blur(20px)' }}
-      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      initial={{ opacity: 0, scale: 1.1 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden pointer-events-none"
     >
-      {/* Neural Grid Preview */}
-      <div className="absolute inset-0 opacity-30">
+      {/* Background Layers */}
+      <div className="absolute inset-0 bg-[#020617]">
         <div 
-          className="grid-bg w-full h-full scale-[1.5]" 
+          className="absolute inset-0 opacity-20"
           style={{ 
-            backgroundImage: `linear-gradient(${theme.primary}11 1px, transparent 1px), linear-gradient(90deg, ${theme.primary}11 1px, transparent 1px)` 
+            backgroundImage: `radial-gradient(circle at center, ${theme.primary}33 0%, transparent 70%)` 
           }}
         />
-      </div>
-
-      {/* Abstract Site Mockup */}
-      <div className="relative w-full max-w-4xl text-center space-y-8 px-12">
-        <motion.div 
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="text-[12rem] font-black font-display leading-none opacity-10 select-none tracking-tighter"
-          style={{ color: theme.primary }}
-        >
-          100%
-        </motion.div>
+        <div 
+          className="grid-bg w-full h-full scale-[1.5] opacity-30" 
+          style={{ 
+            backgroundImage: `linear-gradient(${theme.primary}22 1px, transparent 1px), linear-gradient(90deg, ${theme.primary}22 1px, transparent 1px)` 
+          }}
+        />
         
-        <div className="space-y-4">
-          <div className="h-2 w-32 bg-white/10 mx-auto rounded-full" />
-          <div className="h-20 w-full max-w-lg bg-gradient-to-r from-transparent via-white/5 to-transparent mx-auto rounded-2xl" />
-        </div>
+        {/* Theme Specific Background Elements */}
+        {isTeal ? <BinaryRain color={theme.primary} /> : (
+          <div className="absolute inset-0 opacity-20">
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                animate={{ 
+                  scale: [1, 1.5, 1],
+                  opacity: [0.1, 0.3, 0.1],
+                  x: [0, Math.random() * 100 - 50, 0],
+                  y: [0, Math.random() * 100 - 50, 0]
+                }}
+                transition={{ duration: 10 + i, repeat: Infinity }}
+                className="absolute w-64 h-64 rounded-full blur-[80px]"
+                style={{ backgroundColor: theme.primary, left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
-        <div className="flex justify-center gap-4">
-          <div className="w-40 h-12 rounded-full border border-white/10 bg-white/5" />
-          <div className="w-12 h-12 rounded-full" style={{ backgroundColor: theme.primary }} />
+      {/* Main Content Mockup */}
+      <div className="relative w-full max-w-7xl px-12 flex flex-col items-center">
+        <motion.div 
+          initial={{ y: 40, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-center mb-16"
+        >
+          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-white/10 glass mb-8">
+            <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: theme.primary }} />
+            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40">Aperçu du Système</span>
+          </div>
+          
+          <h2 className="text-[12vw] font-black font-display leading-[0.8] mb-8 tracking-tighter uppercase italic">
+            <span className="text-white/10">MODE</span> <br />
+            <span style={{ color: theme.primary }} className="drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+              {isTeal ? 'CYBER' : 'PULSE'}
+            </span>
+          </h2>
+          
+          <div className="max-w-xl mx-auto h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        </motion.div>
+
+        {/* Floating Cards Mockup */}
+        <div className="grid grid-cols-3 gap-6 w-full max-w-5xl">
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.1 }}
+              className="aspect-[4/5] glass rounded-[2.5rem] border-white/5 p-8 flex flex-col justify-end relative overflow-hidden group"
+            >
+              <div className="absolute top-8 left-8 p-3 rounded-2xl bg-white/5" style={{ color: theme.primary }}>
+                {isTeal ? (i === 0 ? <Binary size={20} /> : i === 1 ? <Cpu size={20} /> : <Code size={20} />) : 
+                          (i === 0 ? <Palette size={20} /> : i === 1 ? <Activity size={20} /> : <Sparkles size={20} />)}
+              </div>
+              <div className="space-y-4">
+                <div className="h-2 w-1/3 bg-white/20 rounded-full" />
+                <div className="h-8 w-full bg-white/5 rounded-xl border border-white/5" />
+                <div className="h-8 w-2/3 bg-white/5 rounded-xl border border-white/5" />
+              </div>
+              {/* Animated glow on card */}
+              <motion.div 
+                animate={{ opacity: [0.1, 0.3, 0.1] }}
+                transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: `radial-gradient(circle at 50% 120%, ${theme.primary}22, transparent 70%)` }}
+              />
+            </motion.div>
+          ))}
         </div>
       </div>
 
-      {/* Glow Orbs */}
-      <motion.div 
-        animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ duration: 8, repeat: Infinity }}
-        className="absolute w-[800px] h-[800px] rounded-full blur-[120px]"
-        style={{ background: `radial-gradient(circle, ${theme.primary}33 0%, transparent 70%)` }}
-      />
+      {/* Atmospheric Particles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(30)].map((_, i) => (
+          <FloatingParticle key={i} color={theme.primary} delay={i * 0.2} />
+        ))}
+      </div>
     </motion.div>
   );
 };
@@ -88,50 +166,46 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onSelect }) => {
     <motion.div 
       className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#020617] overflow-hidden"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.1, filter: 'blur(20px)' }}
-      transition={{ duration: 1, ease: [0.7, 0, 0.3, 1] }}
+      exit={{ opacity: 0, transition: { duration: 1.2, ease: [0.7, 0, 0.3, 1] } }}
     >
-      {/* Background Portals */}
+      {/* Dynamic Background Preview */}
       <AnimatePresence mode="wait">
-        {hoveredColor && <ThemePreviewPortal key={hoveredColor} color={hoveredColor} />}
+        {hoveredColor ? (
+          <ThemePreviewPortal key={hoveredColor} color={hoveredColor} />
+        ) : (
+          <motion.div 
+            key="default"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.4 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 grid-bg w-full h-full scale-[2] pointer-events-none opacity-10" 
+          />
+        )}
       </AnimatePresence>
 
-      {/* Default Neural Grid */}
-      <div className="absolute inset-0 opacity-5 pointer-events-none">
-        <div className="grid-bg w-full h-full scale-[2]" />
-      </div>
-
-      {/* Floating Icons */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <FloatingElement delay={0} duration={5}><div className="top-[15%] left-[10%]"><Code size={60} className="text-white" /></div></FloatingElement>
-        <FloatingElement delay={1} duration={6}><div className="bottom-[15%] left-[15%]"><Palette size={50} className="text-white" /></div></FloatingElement>
-        <FloatingElement delay={0.5} duration={7}><div className="top-[20%] right-[10%]"><Cpu size={70} className="text-white" /></div></FloatingElement>
-        <FloatingElement delay={2} duration={5.5}><div className="bottom-[20%] right-[15%]"><Zap size={50} className="text-white" /></div></FloatingElement>
-      </div>
-
+      {/* Main UI Overlay */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 text-center px-6"
+        animate={{ y: hoveredColor ? -40 : 0 }}
+        className="relative z-10 text-center px-6 transition-all duration-700"
       >
         <motion.div 
-          animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="mb-8 inline-flex items-center gap-3 px-6 py-2 rounded-full border border-white/10 glass text-white/50 text-[10px] font-black tracking-[0.5em] uppercase"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12 inline-flex items-center gap-3 px-6 py-2 rounded-full border border-white/10 glass text-white/50 text-[10px] font-black tracking-[0.5em] uppercase"
         >
           <Monitor size={14} className="text-teal-400" />
-          Sélection du profil énergétique
+          Initialisation de l'Interface
         </motion.div>
 
-        <h1 className="text-5xl md:text-[6rem] font-black text-white mb-16 font-display tracking-tighter leading-none uppercase">
-          VOTRE <span className="text-gradient">EXPÉRIENCE.</span>
+        <h1 className="text-5xl md:text-[7rem] font-black text-white mb-16 font-display tracking-tighter leading-none uppercase select-none">
+          CHOISISSEZ <br /> VOTRE <span className="text-gradient">UNIVERS.</span>
         </h1>
         
         <div className="flex flex-col md:flex-row gap-8 justify-center items-center">
           <ThemeCard 
             color="teal" 
             label="CYBER"
-            description="L'esthétique brute du code et de l'innovation."
+            description="L'esthétique de l'innovation pure et du code performant."
             onSelect={onSelect} 
             onHover={() => setHoveredColor('teal')}
             onLeave={() => setHoveredColor(null)}
@@ -140,7 +214,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onSelect }) => {
           <ThemeCard 
             color="pink" 
             label="PULSE"
-            description="La vibration créative et le design émotionnel."
+            description="La puissance créative et l'excellence du design."
             onSelect={onSelect}
             onHover={() => setHoveredColor('pink')}
             onLeave={() => setHoveredColor(null)}
@@ -149,17 +223,21 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onSelect }) => {
         </div>
       </motion.div>
 
-      {/* Status Bar */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="absolute bottom-12 flex items-center gap-12 text-[9px] font-black text-white/20 tracking-[0.8em] uppercase"
-      >
-        <span>Douala HUB</span>
-        <div className="w-1 h-1 rounded-full bg-white/20" />
-        <span>100% ACADEMY OS v2.6</span>
-      </motion.div>
+      {/* Footer Info */}
+      <div className="absolute bottom-12 flex flex-col items-center gap-4 pointer-events-none">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: hoveredColor ? 0.8 : 0.2 }}
+          className="text-[9px] font-black text-white uppercase tracking-[1em]"
+        >
+          {hoveredColor ? `ACTIVATION DU MODULE ${hoveredColor}` : "SÉLECTION DU PRISME REQUISE"}
+        </motion.div>
+        <div className="flex items-center gap-8 text-[8px] font-medium text-white/10 tracking-[0.4em] uppercase">
+          <span>DOUALA HUB</span>
+          <div className="w-1 h-1 rounded-full bg-white/10" />
+          <span>v2.0-2026</span>
+        </div>
+      </div>
     </motion.div>
   );
 };
@@ -177,50 +255,44 @@ const ThemeCard: React.FC<{
 
   return (
     <motion.button
-      whileHover={{ scale: 1.02, y: -10 }}
+      whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       onClick={() => onSelect(color)}
-      className={`w-72 h-[420px] rounded-[3.5rem] p-10 flex flex-col items-center justify-between glass border transition-all duration-500 relative overflow-hidden group ${
-        isActive ? 'border-white/30 bg-white/[0.04] shadow-[0_0_50px_-12px_rgba(255,255,255,0.1)]' : 'border-white/5'
+      className={`w-80 h-[420px] rounded-[3.5rem] p-10 flex flex-col items-center justify-between glass border transition-all duration-700 relative overflow-hidden group ${
+        isActive ? 'border-white/40 bg-white/[0.08] shadow-[0_0_100px_-20px_rgba(255,255,255,0.1)]' : 'border-white/5 opacity-70'
       }`}
     >
       <div 
-        className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700 pointer-events-none" 
-        style={{ 
-          background: `radial-gradient(circle at top, ${primary}, transparent 70%)` 
-        }} 
+        className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-700" 
+        style={{ background: `radial-gradient(circle at center, ${primary}, transparent 80%)` }} 
       />
       
       <div 
-        className="w-16 h-16 rounded-2xl flex items-center justify-center border transition-all duration-500 mt-4 relative z-10"
+        className="w-20 h-20 rounded-3xl flex items-center justify-center border transition-all duration-700 relative z-10"
         style={{ 
           backgroundColor: isActive ? primary : 'rgba(255,255,255,0.02)',
           borderColor: isActive ? 'white' : 'rgba(255,255,255,0.1)',
-          boxShadow: isActive ? `0 0 30px ${primary}66` : 'none'
+          boxShadow: isActive ? `0 0 40px ${primary}66` : 'none'
         }}
       >
-        {color === 'teal' ? <Zap size={28} className="text-white" /> : <Shield size={28} className="text-white" />}
+        {color === 'teal' ? <Zap size={32} className="text-white" /> : <Shield size={32} className="text-white" />}
       </div>
 
-      <div className="space-y-4 relative z-10 flex-grow flex flex-col justify-center">
-        <h3 className="text-white font-black text-3xl font-display leading-none tracking-tight">
-          {label}
-        </h3>
-        <p className={`text-[11px] font-medium leading-relaxed transition-colors duration-500 px-4 ${isActive ? 'text-white/70' : 'text-white/20'}`}>
+      <div className="relative z-10 text-center space-y-4">
+        <h3 className="text-white font-black text-4xl font-display tracking-tight uppercase italic">{label}</h3>
+        <p className={`text-[11px] leading-relaxed transition-all duration-700 px-4 ${isActive ? 'text-white/80' : 'text-white/20'}`}>
           {description}
         </p>
       </div>
 
-      <motion.div 
-        animate={{ opacity: isActive ? 1 : 0.3, y: isActive ? 0 : 5 }}
-        className="pb-4 flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.4em] relative z-10"
-        style={{ color: isActive ? primary : 'rgba(255,255,255,0.2)' }}
+      <div 
+        className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] relative z-10 py-4 px-8 rounded-full border border-transparent transition-all"
+        style={{ color: isActive ? primary : 'white', borderColor: isActive ? `${primary}33` : 'transparent' }}
       >
-        <span>Sélectionner</span>
-        <ArrowRight size={10} />
-      </motion.div>
+        ENTRER <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+      </div>
 
       {/* Progress Line */}
       <motion.div 
@@ -232,11 +304,5 @@ const ThemeCard: React.FC<{
     </motion.button>
   );
 };
-
-const ArrowRight = ({ size }: { size: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5 12h14M12 5l7 7-7 7"/>
-  </svg>
-);
 
 export default SplashScreen;
