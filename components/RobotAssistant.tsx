@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, ExternalLink } from 'lucide-react';
-import { ThemeColor, RobotState } from '../types';
-import { COLORS } from '../constants';
-import { getGeminiChatResponse } from '../services/geminiService';
+import { ThemeColor } from '../types.ts';
+import { COLORS } from '../constants.tsx';
+import { getGeminiChatResponse } from '../services/geminiService.ts';
 
 interface RobotAssistantProps {
   themeColor: ThemeColor;
@@ -17,7 +17,6 @@ const RobotAssistant: React.FC<RobotAssistantProps> = ({ themeColor }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { scrollYProgress } = useScroll();
 
-  // Robot movements and scale based on scroll
   const x = useTransform(scrollYProgress, [0, 0.25, 0.5, 0.75, 1], [0, -40, 40, -40, 0]);
   const y = useTransform(scrollYProgress, [0, 0.2, 0.4, 0.6, 0.8, 1], [0, 50, -30, 60, -20, 0]);
   const rotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
@@ -40,7 +39,6 @@ const RobotAssistant: React.FC<RobotAssistantProps> = ({ themeColor }) => {
 
   return (
     <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end">
-      {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -107,7 +105,7 @@ const RobotAssistant: React.FC<RobotAssistantProps> = ({ themeColor }) => {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Posez votre question..."
-                className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2"
+                className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 outline-none"
                 style={{ ringColor: primaryColor }}
               />
               <button 
@@ -131,7 +129,6 @@ const RobotAssistant: React.FC<RobotAssistantProps> = ({ themeColor }) => {
         )}
       </AnimatePresence>
 
-      {/* The Floating Robot Button */}
       <motion.div
         style={{ x, y, rotate, scale }}
         whileHover={{ scale: 1.1 }}
@@ -154,19 +151,16 @@ const RobotSVG: React.FC<{ themeColor: ThemeColor; size?: number; animate?: bool
   const color = COLORS[themeColor].primary;
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Body */}
       <motion.rect 
         x="25" y="40" width="50" height="40" rx="10" fill={color}
         animate={animate ? { y: [40, 38, 40] } : {}}
         transition={{ repeat: Infinity, duration: 2 }}
       />
-      {/* Head */}
       <motion.rect 
         x="30" y="15" width="40" height="30" rx="15" fill={color}
         animate={animate ? { rotate: [-5, 5, -5] } : {}}
         transition={{ repeat: Infinity, duration: 3 }}
       />
-      {/* Eyes */}
       <circle cx="42" cy="30" r="4" fill="white" />
       <circle cx="58" cy="30" r="4" fill="white" />
       <motion.circle 
@@ -179,10 +173,8 @@ const RobotSVG: React.FC<{ themeColor: ThemeColor; size?: number; animate?: bool
         animate={animate ? { scaleY: [1, 0.1, 1] } : {}}
         transition={{ repeat: Infinity, duration: 4, times: [0, 0.95, 1] }}
       />
-      {/* Antenna */}
       <line x1="50" y1="15" x2="50" y2="5" stroke={color} strokeWidth="3" />
       <circle cx="50" cy="5" r="3" fill={color} />
-      {/* Arms */}
       <motion.rect 
         x="15" y="45" width="10" height="25" rx="5" fill={color}
         animate={animate ? { rotate: [-20, 0, -20] } : {}}

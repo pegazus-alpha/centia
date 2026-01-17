@@ -5,13 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Menu, X, Instagram, Facebook, Twitter, Linkedin, 
   ArrowRight, CheckCircle2, MapPin, Phone, Mail, Clock,
-  // Fix: Adding missing icon imports from lucide-react
   Code, Palette, Video, Database 
 } from 'lucide-react';
-import { ThemeColor } from './types';
-import { COLORS, COURSES, TESTIMONIALS } from './constants';
-import RobotAssistant from './components/RobotAssistant';
-import SplashScreen from './components/SplashScreen';
+import { ThemeColor } from './types.ts';
+import { COLORS, COURSES, TESTIMONIALS } from './constants.tsx';
+import RobotAssistant from './components/RobotAssistant.tsx';
+import SplashScreen from './components/SplashScreen.tsx';
 
 const Nav: React.FC<{ themeColor: ThemeColor }> = ({ themeColor }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +24,6 @@ const Nav: React.FC<{ themeColor: ThemeColor }> = ({ themeColor }) => {
           <span className="text-sm font-bold uppercase tracking-widest text-slate-800">Academy</span>
         </Link>
 
-        {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-8">
           <NavLink to="/" label="Accueil" />
           <NavLink to="/formations" label="Formations" />
@@ -42,13 +40,11 @@ const Nav: React.FC<{ themeColor: ThemeColor }> = ({ themeColor }) => {
           S'inscrire maintenant
         </Link>
 
-        {/* Mobile Toggle */}
         <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X /> : <Menu />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
@@ -90,7 +86,6 @@ const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
 
   return (
     <div className="pt-32 pb-20">
-      {/* Hero Section */}
       <section className="container mx-auto px-6 mb-32 flex flex-col lg:flex-row items-center gap-16">
         <div className="flex-1 space-y-8">
           <motion.div 
@@ -168,7 +163,6 @@ const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
               <img src="https://picsum.photos/seed/tech/800/800" alt="Tech training" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
            </motion.div>
-           {/* Geometric Decor */}
            <motion.div 
              animate={{ y: [0, -20, 0], rotate: [0, 10, 0] }}
              transition={{ duration: 5, repeat: Infinity }}
@@ -184,7 +178,6 @@ const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
         </div>
       </section>
 
-      {/* Course Highlighting */}
       <section className="bg-slate-50 py-32">
         <div className="container mx-auto px-6">
            <div className="text-center mb-20 space-y-4">
@@ -205,7 +198,6 @@ const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
                  <div className="relative z-10">
                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:rotate-6" style={{ backgroundColor: `${primaryColor}15` }}>
                      <div className="w-8 h-8" style={{ color: primaryColor }}>
-                        {/* Static icons representation - now correctly imported */}
                         {course.icon === 'code' && <Code />}
                         {course.icon === 'palette' && <Palette />}
                         {course.icon === 'video' && <Video />}
@@ -227,7 +219,6 @@ const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
         </div>
       </section>
 
-      {/* Special Formation June 2026 */}
       <section className="py-32 overflow-hidden relative">
         <div className="container mx-auto px-6 relative z-10">
            <div className="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-white flex flex-col lg:flex-row items-center gap-16 shadow-2xl">
@@ -258,7 +249,6 @@ const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
         </div>
       </section>
 
-      {/* Testimonials */}
       <section className="py-32 bg-white">
         <div className="container mx-auto px-6">
           <h2 className="text-4xl font-black text-center mb-20">Ils ont <span style={{ color: primaryColor }}>transformé</span> leur carrière</h2>
@@ -277,7 +267,6 @@ const Home = ({ themeColor }: { themeColor: ThemeColor }) => {
         </div>
       </section>
 
-      {/* Contact Simple Info */}
       <section className="py-20 border-t border-slate-100">
         <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12">
           <div className="flex items-center gap-6">
@@ -377,7 +366,6 @@ const Footer = ({ themeColor }: { themeColor: ThemeColor }) => {
            <div>Conçu avec passion à Douala.</div>
         </div>
       </div>
-      {/* Decorative Blur */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-teal-500/10 rounded-full blur-[120px]" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px]" />
     </footer>
@@ -437,7 +425,6 @@ const AppContent: React.FC = () => {
             <Footer themeColor={themeColor} />
             <RobotAssistant themeColor={themeColor} />
             
-            {/* WhatsApp Floating Button */}
             <a 
               href="https://wa.me/237679910922" 
               target="_blank" 

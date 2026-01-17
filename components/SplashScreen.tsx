@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ThemeColor } from '../types';
-import { COLORS } from '../constants';
+import { ThemeColor } from '../types.ts';
+import { COLORS } from '../constants.tsx';
 
 interface SplashScreenProps {
   onSelect: (color: ThemeColor) => void;
@@ -22,23 +22,11 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onSelect }) => {
       exit={{ scale: 20, opacity: 0 }}
       transition={{ duration: 0.8, ease: "easeIn" }}
     >
-      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
         <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 180, 270, 360],
-          }}
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 180, 270, 360] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           className="absolute -top-1/2 -left-1/2 w-full h-full border-[1px] border-white/10 rounded-full"
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1.2, 1, 1.2],
-            rotate: [360, 270, 180, 90, 0],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute -bottom-1/2 -right-1/2 w-full h-full border-[1px] border-white/10 rounded-full"
         />
       </div>
 
@@ -74,7 +62,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onSelect }) => {
         </div>
       </motion.div>
 
-      {/* Preview Section */}
       <AnimatePresence>
         {hoveredColor && (
           <motion.div
@@ -93,10 +80,6 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onSelect }) => {
               <div className="h-6 rounded-md w-3/4" style={{ backgroundColor: COLORS[hoveredColor].primary }} />
               <div className="h-32 rounded-md w-full bg-white/5 flex items-center justify-center">
                 <div className="w-12 h-12 rounded-full" style={{ backgroundColor: COLORS[hoveredColor].primary }} />
-              </div>
-              <div className="flex gap-2">
-                <div className="h-10 rounded-md flex-1" style={{ backgroundColor: COLORS[hoveredColor].primary }} />
-                <div className="h-10 rounded-md flex-1 bg-white/10" />
               </div>
             </div>
           </motion.div>
