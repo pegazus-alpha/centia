@@ -1,16 +1,29 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { COURSES, COLORS } from './constants.tsx';
-import { ThemeColor } from './types.ts';
-import { Code, Palette, Video, Database, ArrowRight, Filter, TrendingUp, Workflow, CheckCircle } from 'lucide-react';
+import { COLORS } from './constants.tsx';
+import { ThemeColor, Course } from './types.ts';
+import { Code, Palette, Video, Database, ArrowRight, TrendingUp, Workflow, CheckCircle, X, Book, Timer, Zap, List } from 'lucide-react';
+import { getData, KEYS } from './services/dataService';
 
 const FormationsPage = ({ themeColor }: { themeColor: ThemeColor }) => {
   const [filter, setFilter] = useState<string>('all');
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const primaryColor = COLORS[themeColor].primary;
   
-  const categories = ['all', ...new Set(COURSES.map(c => c.category))];
-  const filteredCourses = filter === 'all' ? COURSES : COURSES.filter(c => c.category === filter);
+  const refreshCourses = () => {
+    setCourses(getData(KEYS.COURSES));
+  };
+
+  useEffect(() => {
+    refreshCourses();
+    window.addEventListener('100_storage_sync', refreshCourses);
+    return () => window.removeEventListener('100_storage_sync', refreshCourses);
+  }, []);
+
+  const categories = ['all', ...new Set(courses.map(c => c.category))];
+  const filteredCourses = filter === 'all' ? courses : courses.filter(c => c.category === filter);
 
   const getIcon = (iconName: string) => {
     switch(iconName) {
@@ -24,122 +37,116 @@ const FormationsPage = ({ themeColor }: { themeColor: ThemeColor }) => {
     }
   };
 
-  return (
-    <div className="pt-40 pb-20 px-6 max-w-7xl mx-auto min-h-screen">
+  const CourseDetail = ({ course, onClose }: { course: Course, onClose: () => void }) => (
+    <motion.div 
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/95 backdrop-blur-3xl overflow-y-auto"
+      onClick={onClose}
+    >
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-24"
+        initial={{ scale: 0.9, y: 100 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 100 }}
+        className="glass w-full max-w-6xl rounded-[4rem] border-white/10 p-12 md:p-20 relative overflow-hidden my-auto"
+        onClick={e => e.stopPropagation()}
       >
-        <h1 className="text-6xl md:text-8xl font-black font-display mb-8">
-          VOTRE <span className="text-gradient">AVENIR.</span>
-        </h1>
-        <p className="text-white/40 text-xl max-w-2xl mx-auto font-light leading-relaxed">
-          Un catalogue conçu pour l'employabilité immédiate. Maîtrisez les outils qui feront de vous un profil incontournable.
-        </p>
-      </motion.div>
+        <button onClick={onClose} className="absolute top-10 right-10 w-16 h-16 glass rounded-full flex items-center justify-center border-white/10 hover:bg-white/5 z-20"><X size={24} /></button>
+        
+        <div className="grid lg:grid-cols-2 gap-24 relative z-10">
+          <div className="space-y-12">
+            <div className="w-24 h-24 rounded-[2rem] flex items-center justify-center border border-white/10" style={{ color: primaryColor, backgroundColor: `${primaryColor}15` }}>
+              {getIcon(course.icon)}
+            </div>
+            <div className="space-y-6">
+              <div className="text-[12px] font-black uppercase tracking-[0.6em] text-teal-400">{course.category} • {course.duration}</div>
+              <h2 className="text-6xl md:text-8xl font-black font-display leading-[0.85] tracking-tighter uppercase italic text-white">{course.title}</h2>
+            </div>
+            <p className="text-white/40 text-2xl font-light leading-relaxed">{course.description}</p>
+            
+            <div className="grid grid-cols-2 gap-10">
+              <div className="p-10 glass rounded-[2.5rem] border-white/5">
+                <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-4">Investissement</div>
+                <div className="text-3xl font-bold text-white">{course.price || 'Nous contacter'}</div>
+              </div>
+              <div className="p-10 glass rounded-[2.5rem] border-white/5 text-center">
+                <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-4">Certification</div>
+                <div className="text-3xl font-bold text-white">Inclus</div>
+              </div>
+            </div>
+          </div>
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap justify-center gap-4 mb-20">
+          <div className="space-y-16 bg-white/[0.02] p-16 rounded-[4rem] border border-white/5">
+             <h3 className="text-3xl font-bold font-display uppercase tracking-widest flex items-center gap-6 text-white">
+               <Book style={{ color: primaryColor }} size={32} /> Programme Elite
+             </h3>
+             <div className="space-y-10 custom-scrollbar max-h-[400px] overflow-y-auto pr-4">
+               {(course.curriculum && course.curriculum.length > 0) ? course.curriculum.map((point, i) => (
+                 <div key={i} className="flex gap-8 group">
+                   <div className="w-12 h-12 rounded-full glass flex items-center justify-center border-white/10 group-hover:border-white/30 transition-all"><CheckCircle size={20} style={{ color: primaryColor }} /></div>
+                   <div>
+                     <h4 className="text-xl font-bold text-white mb-1">Module {i + 1}</h4>
+                     <p className="text-white/30 text-base font-light">{point}</p>
+                   </div>
+                 </div>
+               )) : (
+                 <div className="text-center py-20 opacity-20 italic">Programme en cours de finalisation...</div>
+               )}
+             </div>
+             <button className="w-full py-10 rounded-[2.5rem] font-black uppercase tracking-[0.5em] text-white shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: primaryColor }}>Réserver ma place</button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+
+  return (
+    <div className="pt-48 pb-40 px-6 max-w-7xl mx-auto min-h-screen">
+      <AnimatePresence>{selectedCourse && <CourseDetail course={selectedCourse} onClose={() => setSelectedCourse(null)} />}</AnimatePresence>
+
+      <div className="text-center mb-32">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-4 px-6 py-2 rounded-full border border-white/10 glass text-white/40 text-[10px] font-black tracking-[0.5em] uppercase mb-12"
+        >
+          <Zap size={14} style={{ color: primaryColor }} />
+          Catalogue de Compétences 2026
+        </motion.div>
+        <h1 className="text-[10vw] font-black font-display mb-12 uppercase italic leading-none text-white">CURSUS.</h1>
+        <p className="text-white/40 text-2xl max-w-3xl mx-auto font-light leading-relaxed italic">Des parcours d'exception pour forger l'élite numérique du continent.</p>
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-4 mb-32">
         {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setFilter(cat)}
-            className={`px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border transition-all ${
-              filter === cat 
-                ? 'bg-white text-black border-white' 
-                : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'
-            }`}
+          <button 
+            key={cat} 
+            onClick={() => setFilter(cat)} 
+            className={`px-10 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border transition-all ${filter === cat ? 'bg-white text-black border-white' : 'bg-white/5 text-white/40 border-white/10 hover:border-white/30'}`}
           >
-            {cat === 'all' ? 'Toutes les formations' : cat}
+            {cat}
           </button>
         ))}
       </div>
 
-      <motion.div 
-        layout
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-40"
-      >
-        <AnimatePresence mode="popLayout">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {filteredCourses.map((course) => (
-            <motion.div
-              key={course.id}
+            <motion.div 
+              key={course.id} 
               layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              whileHover={{ y: -10 }}
-              className="group glass p-10 rounded-[3.5rem] border border-white/5 hover:bg-white/[0.05] transition-all flex flex-col h-full"
+              onClick={() => setSelectedCourse(course)} 
+              className="group glass p-12 rounded-[4rem] border border-white/5 flex flex-col cursor-pointer transition-all hover:bg-white/[0.05] hover:scale-[1.02]"
             >
-              <div 
-                className="w-16 h-16 rounded-3xl flex items-center justify-center mb-10 transition-transform group-hover:rotate-12"
-                style={{ color: primaryColor, backgroundColor: `${primaryColor}15` }}
-              >
-                {getIcon(course.icon)}
-              </div>
-              <div className="mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
-                {course.category} • {course.duration}
-              </div>
-              <h3 className="text-3xl font-bold mb-6 font-display leading-tight">{course.title}</h3>
-              <p className="text-white/40 text-sm mb-12 flex-grow leading-relaxed font-light">
-                {course.description}
-              </p>
-              
-              <div className="mb-10 p-5 rounded-2xl bg-white/5 border border-white/5">
-                 <div className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-4">Investissement</div>
-                 <div className="text-2xl font-bold text-white">{course.price || 'Sur Devis'}</div>
-              </div>
-
-              <div className="flex items-center justify-between pt-8 border-t border-white/5">
-                <button 
-                  className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:gap-5"
-                  style={{ color: primaryColor }}
-                >
-                  Détails du programme <ArrowRight size={14} />
-                </button>
+              <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-12 transition-transform group-hover:rotate-12" style={{ color: primaryColor, backgroundColor: `${primaryColor}15` }}>{getIcon(course.icon)}</div>
+              <h3 className="text-4xl font-bold mb-8 font-display leading-[0.9] text-white group-hover:text-teal-400 transition-colors">{course.title}</h3>
+              <p className="text-white/40 text-lg mb-12 flex-grow font-light line-clamp-3 leading-relaxed">{course.description}</p>
+              <div className="pt-10 border-t border-white/5 flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                <span className="text-white/20 flex items-center gap-3"><Timer size={14} /> {course.duration}</span>
+                <span style={{ color: primaryColor }}>Exploration <ArrowRight size={14} className="inline ml-3" /></span>
               </div>
             </motion.div>
           ))}
-        </AnimatePresence>
-      </motion.div>
-
-      {/* Methodology / Why us */}
-      <section className="py-40 border-t border-white/5">
-        <div className="grid lg:grid-cols-2 gap-20 items-center">
-          <div>
-            <h2 className="text-5xl font-black font-display mb-10 leading-[0.9]">POURQUOI NOUS <br /><span className="text-white/20 italic">CHOISIR ?</span></h2>
-            <div className="space-y-12">
-              {[
-                { t: "Pratique à 100%", d: "Pas de théorie inutile. Chaque module se termine par un projet concret pour votre portfolio." },
-                { t: "Mentors Experts", d: "Formez-vous avec des professionnels qui utilisent ces outils IA quotidiennement." },
-                { t: "Accès à Vie", d: "Rejoignez notre communauté privée et profitez des mises à jour gratuites sur les outils." }
-              ].map((item, i) => (
-                <div key={i} className="flex gap-8">
-                  <div className="w-12 h-12 rounded-full glass flex items-center justify-center flex-shrink-0" style={{ color: primaryColor }}>
-                    <CheckCircle size={20} />
-                  </div>
-                  <div>
-                    <h4 className="text-xl font-bold mb-2 uppercase tracking-tighter">{item.t}</h4>
-                    <p className="text-white/40 font-light leading-relaxed">{item.d}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="relative aspect-square">
-             <div className="absolute inset-0 bg-gradient-to-br from-teal-500/20 to-pink-500/20 blur-[120px] rounded-full" />
-             <div className="relative h-full w-full glass rounded-[5rem] border-white/10 overflow-hidden">
-                <img src="https://picsum.photos/seed/learn/800/800" className="w-full h-full object-cover opacity-50 grayscale hover:grayscale-0 transition-all duration-1000" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                   <div className="p-8 glass rounded-3xl text-center border-white/20 backdrop-blur-3xl">
-                      <div className="text-5xl font-black mb-2">98%</div>
-                      <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Taux d'insertion professionnelle</div>
-                   </div>
-                </div>
-             </div>
-          </div>
-        </div>
-      </section>
+          {filteredCourses.length === 0 && (
+            <div className="col-span-full py-20 text-center opacity-20 uppercase font-black tracking-widest text-sm text-white">Aucun cursus disponible.</div>
+          )}
+      </div>
     </div>
   );
 };

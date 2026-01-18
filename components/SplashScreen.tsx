@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeColor } from '../types.ts';
 import { COLORS } from '../constants.tsx';
-// Added Sparkles to the import list to resolve missing name error
 import { Zap, Shield, Cpu, Code, Palette, Monitor, ArrowRight, Binary, Activity, Sparkles } from 'lucide-react';
 
 interface SplashScreenProps {
